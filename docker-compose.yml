@@ -1,0 +1,97 @@
+version: '3.4'
+
+services:
+  recall-zipkin:
+    image: openzipkin/zipkin-slim:latest
+  
+  
+  recall-seq:
+    image: datalust/seq:latest
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+  
+  
+  recall-sqldata:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+
+  recall-rabbitmq:
+    image: rabbitmq:3-management-alpine
+
+
+  recall-envoygateway:
+    image: envoyproxy/envoy:v1.11.1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+  
+  
+  recall-envoygateway-dapr:
+    image: "daprio/daprd:1.9.4"
+    network_mode: "service:recall-envoygateway"
+    depends_on:
+      - recall-envoygateway
+  
+  
+  recall-textitemapi:
+    image: recall-textitemapi
+    build:
+      context: .
+      dockerfile: Contrib/TextItem.Api/Dockerfile
+
+
+  recall-textitemapi-dapr:
+    image: "daprio/daprd:1.9.4"
+    network_mode: "service:recall-textitemapi"
+    depends_on:
+      - recall-textitemapi
+  
+  
+  recall-servicestatus:
+    image: recall-servicestatus
+    build:
+      context: .
+      dockerfile: Infrastructure/ServiceStatus/Dockerfile
+
+
+  recall-listapi:
+    image: recall-listapi
+    build:
+      context: .
+      dockerfile: Core/List/List.Api/Dockerfile
+
+
+  recall-listapi-dapr:
+    image: "daprio/daprd:1.9.4"
+    network_mode: "service:recall-listapi"
+    depends_on:
+      - recall-listapi
+        
+        
+  recall-identityapi:
+    image: recall-identityapi
+    build:
+      context: .
+      dockerfile: Infrastructure/Identity.Api/Dockerfile
+      
+      
+  recall-identityapi-dapr:
+    image: "daprio/daprd:1.9.4"
+    network_mode: "service:recall-identityapi"
+    depends_on:
+      - recall-identityapi
+
+
+  recall-maskedtextitemapi:
+    image: recall-maskedtextitemapi
+    build:
+      context: .
+      dockerfile: Contrib/MaskedTextItem.Api/Dockerfile
+
+
+  recall-maskedtextitemapi-dapr:
+    image: "daprio/daprd:1.9.4"
+    network_mode: "service:recall-maskedtextitemapi"
+    depends_on:
+      - recall-maskedtextitemapi

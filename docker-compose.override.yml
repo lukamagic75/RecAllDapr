@@ -1,0 +1,139 @@
+version: '3.4'
+
+services:
+  recall-zipkin:
+    ports:
+      - "35411:9411"
+  
+  
+  recall-seq:
+    environment:
+      - ACCEPT_EULA=Y
+    ports:
+      - "35340:80"
+  
+  
+  recall-sqldata:
+    environment:
+      - SA_PASSWORD=Pass@word
+      - ACCEPT_EULA=Y
+    ports:
+      - "35433:1433"
+    volumes:
+      - recall-sqldata:/var/opt/mssql
+  
+  
+  recall-rabbitmq:
+    ports:
+      - "35672:5672"
+      - "35673:15672"
+  
+  
+  recall-envoygateway:
+    volumes:
+      - ./Infrastructure/envoy.yaml:/etc/envoy/envoy.yaml
+    ports:
+      - "35191:80"
+      - "35181:8001"
+  
+  
+  recall-envoygateway-dapr:
+    command: [ "./daprd",
+               "-app-id", "recall-envoygateway",
+               "-app-port", "80",
+               "-components-path", "/components"
+    ]
+    volumes:
+      - "./dapr/components/:/components"
+  
+  
+  recall-textitemapi:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+    ports:
+      - "35210:8080"
+      - "50001"
+  
+  
+  recall-textitemapi-dapr:
+    command: [ "./daprd",
+               "-app-id", "recall-textitemapi",
+               "-app-port", "8080",
+               "-components-path", "/components",
+               "-config", "/configuration/recall-configuration.yaml"
+    ]
+    volumes:
+      - "./dapr/components/:/components"
+      - "./dapr/configuration/:/configuration"
+  
+  
+  recall-servicestatus:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+    ports:
+      - "35107:8080"
+  
+  
+  recall-listapi:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+    ports:
+      - "35200:8080"
+
+
+  recall-listapi-dapr:
+    command: [ "./daprd",
+               "-app-id", "recall-listapi",
+               "-app-port", "8080",
+               "-components-path", "/components",
+               "-config", "/configuration/recall-configuration.yaml" ]
+    volumes:
+      - "./dapr/components/:/components"
+      - "./dapr/configuration/:/configuration"
+        
+        
+  recall-identityapi:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "35105:80"
+
+
+  recall-identityapi-dapr:
+    command: [ "./daprd",
+               "-app-id", "recall-identityapi",
+               "-app-port", "80",
+               "-components-path", "/components",
+               "-config", "/configuration/recall-configuration.yaml" ]
+    volumes:
+      - "./dapr/components/:/components"
+      - "./dapr/configuration/:/configuration"
+
+
+  recall-maskedtextitemapi:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+    ports:
+      - "35220:8080"
+
+  recall-maskedtextitemapi-dapr:
+    command: [ "./daprd",
+               "-app-id", "recall-maskedtextitemapi",
+               "-app-port", "8080",
+               "-components-path", "/components",
+               "-config", "/configuration/recall-configuration.yaml"
+    ]
+    volumes:
+      - "./dapr/components/:/components"
+      - "./dapr/configuration/:/configuration"
+
+
+volumes:
+  recall-sqldata:
+    external: false
+
+
